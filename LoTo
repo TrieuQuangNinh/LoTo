@@ -1,0 +1,197 @@
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+#include <avr/power.h>  // Required for 16 MHz Adafruit Trinket
+#endif
+#define PIN 5
+#include "Arduino.h"
+#include "SoftwareSerial.h"
+#include "DFRobotDFPlayerMini.h"
+
+// Create the Player object
+DFRobotDFPlayerMini myDFPlayer;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(91, PIN, NEO_GRB + NEO_KHZ800);
+
+// Use pins 2 and 3 to communicate with DFPlayer Mini
+static const uint8_t PIN_MP3_TX = 10; // Connects to module's RX 
+static const uint8_t PIN_MP3_RX = 11; // Connects to module's TX 
+SoftwareSerial softwareSerial(PIN_MP3_RX, PIN_MP3_TX);
+
+int randNumber;
+int randomX;
+int randHo;
+int ranStart;
+int myNum[100];
+int myLed[100];
+int a;
+int i;
+int j;
+int k;
+int p;
+int n;
+int so;
+int button = 6;
+bool chay;
+
+static unsigned long timer = millis();
+
+void setup() {
+  Serial.begin(9600);
+  softwareSerial.begin(9600);
+
+  Serial.println();
+  Serial.println(F("DFRobot DFPlayer Mini Demo"));
+  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+
+    if (!myDFPlayer.begin(softwareSerial)) {  //Use softwareSerial to communicate with mp3.
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    while (true) {
+      delay(0);  // Code to compatible with ESP8266 watch dog.
+    }
+  }
+  Serial.println(F("DFPlayer Mini online."));
+  myDFPlayer.volume(25);
+
+  strip.begin();
+  strip.setBrightness(100);
+  strip.show();
+  chay = false;
+  i = 1;
+
+  pinMode(button, INPUT_PULLUP);
+
+
+  randomSeed(analogRead(A0));
+  ranStart = random(93, 95);
+  myDFPlayer.play(ranStart);
+
+  for (a = 1; a < 91; a = a + 1) {
+    strip.setPixelColor(a - 1, 0, 0, 255);
+    strip.show();
+    delay(55);
+    strip.setPixelColor(a - 1, 255, 0, 255);
+    strip.show();
+    delay(55);
+    strip.setPixelColor(a - 1, 0, 255, 255);
+    strip.show();
+    delay(55);
+    strip.setPixelColor(a - 1, 255, 255, 0);
+    strip.show();
+    delay(55);
+  }
+  for (a = 1; a < 91; a = a + 1) {
+    strip.setPixelColor(a - 1, 0, 0, 0);
+    strip.show();
+    delay(10);
+  }
+  delay(100);
+}
+
+
+
+//   if (myDFPlayer.begin(softwareSerial)) {
+//    Serial.println("OK");
+
+//     // Set volume to maximum (0 to 30).
+//     myDFPlayer.volume(20);
+
+//     ranStart = random(1, 2);
+//     myDFPlayer.play(ranStart);
+ 
+//   } else {
+//     Serial.println("Connecting to DFPlayer Mini failed!");
+//   }
+// }
+void loop() {
+  if (i <= 90) {
+    Serial.println(digitalRead(button));
+    if (digitalRead(button) == LOW) {
+      randHo = random(91, 93);
+      myDFPlayer.play(randHo);
+      strip.setPixelColor(myNum[i - 1] - 1, 0, 255, 0);
+bailout:
+      int randNumber = random(1, 91);
+      myNum[i] = randNumber;
+      for (j = 1; j < i; j = j + 1) {
+        if (myNum[i] != myNum[j]) {
+        } else {
+          // i = i - 1;
+          goto bailout;
+        }
+      }
+
+      if (i <= 75) {
+        for (k = 1; k < 15; k = k + 1) {
+demlai1:
+          int randomX = random(1, 91);
+          myLed[k] = randomX;
+          for (n = 1; n < i; n = n + 1) {
+            if (myLed[k] != myNum[n]) {
+            } else {
+              goto demlai1;
+            }
+          }
+          Serial.print(randomX);
+          Serial.print(' ');
+
+          strip.setPixelColor(randomX - 1, 255, 0, 0);
+          strip.show();
+          delay(530);
+          strip.setPixelColor(randomX - 1, 0, 0, 0);
+          strip.show();
+          delay(20);
+        }
+
+      } else {
+        for (k = 1; k <= 91 - i; k = k + 1) {
+demlai2:
+          randomX = random(1, 91);
+          myLed[k] = randomX;
+          for (n = 1; n < i; n = n + 1) {
+            if (myLed[k] != myNum[n]) {
+            } else {
+              goto demlai2;
+            }
+          }
+          Serial.print(randomX);
+          Serial.print(' ');
+
+          strip.setPixelColor(randomX - 1, 255, 0, 0);
+          strip.show();
+          delay(530);
+          strip.setPixelColor(randomX - 1, 0, 0, 0);
+          strip.show();
+          delay(20);
+        }
+      }
+      Serial.print("so thu ");
+      Serial.print(i);
+      Serial.print(" :");
+      Serial.println(myNum[i]);
+      so = myNum[i];
+
+      while (digitalRead(button) != 0) {
+        hat();
+        strip.setPixelColor(myNum[i] - 1, 0, 0, 255);
+        strip.show();
+        delay(200);
+        strip.setPixelColor(myNum[i] - 1, 0, 0, 0);
+        strip.show();
+        delay(150);
+        strip.setPixelColor(myNum[i] - 1, 255, 0, 255);
+        strip.show();
+        delay(200);
+      }
+      i = i + 1;
+    }
+  }
+  delay(20);
+}
+
+void hat() {
+  if ((unsigned long)(millis() - timer) > 10000) {
+    timer = millis();
+    myDFPlayer.play(so);  //Play next mp3 every 3 second.
+  }
+}
